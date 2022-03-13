@@ -1,0 +1,343 @@
+<html>
+<head>
+	<title>Drawing 2D Panda with WebGL</title>
+</head>
+
+<body>
+<h2>Panda 2D Dengan WebGL</h2><br>
+
+<canvas id = "my_Canvas" width="550" height="550" style="border:3px solid #593202;"></canvas>
+
+<script>
+	var canvas = document.getElementById('my_Canvas');
+    var gl = canvas.getContext('webgl');
+
+        var vertex = `
+            attribute vec4 position;
+            attribute vec4 color;
+            varying vec4 v_color;
+            void main() {
+                gl_Position = position;
+                gl_PointSize = 15.0;
+                v_color = color;
+            }`;
+
+        var color = `
+            precision highp float;
+            varying vec4 v_color;
+            void main() {
+                gl_FragColor = v_color;
+            }`;
+
+        var createShader = function(gl, type, glsl) {
+            var shader = gl.createShader(type)
+            gl.shaderSource(shader, glsl)
+            gl.compileShader(shader)
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                throw new Error(gl.getShaderInfoLog(shader))
+            }
+            return shader
+        };
+
+		var compileShadersAndLinkProgram = function(gl, prg, vsGLSL, fsGLSL) {
+            var vertexShader = createShader(gl, gl.VERTEX_SHADER, vsGLSL)
+            var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsGLSL)
+            gl.attachShader(prg, vertexShader)
+            gl.attachShader(prg, fragmentShader)
+            gl.linkProgram(prg)
+            if (!gl.getProgramParameter(prg, gl.LINK_STATUS)) {
+                throw new Error(gl.getProgramInfoLog(prg))
+            }
+		
+		gl.detachShader(prg, vertexShader)
+            gl.deleteShader(vertexShader)
+            gl.detachShader(prg, fragmentShader)
+            gl.deleteShader(fragmentShader)
+            return prg
+        };
+
+		var prog = gl.createProgram();
+        compileShadersAndLinkProgram(gl, prog, vertex, color);
+        var progLocs = {
+            position: gl.getAttribLocation(prog, 'position'),
+            color: gl.getAttribLocation(prog, 'color'),
+        };
+
+
+		var progVertexPositions = new Float32Array([
+            -0.20,  0.50, //wajah atas
+			-0.05,  0.50,     
+            -0.10,  0.50,    
+            -0.15,  0.50,     
+            0.0,  0.50,
+			-0.25,  0.50, 
+            -0.20,  0.50,    
+			-0.30, 0.45,  //telinga kiri
+			-0.35, 0.45,
+			-0.40, 0.40,
+			-0.45, 0.35,
+			-0.40, 0.45,
+			-0.45, 0.40,
+			-0.35, 0.50,
+			-0.40, 0.50,
+			-0.45, 0.45,
+			-0.50, 0.40,
+			-0.45, 0.50,
+			-0.40, 0.55,
+			-0.50, 0.45,
+			-0.50, 0.50,
+			-0.45, 0.55,
+			-0.55, 0.45,
+			
+			0.05, 0.45, //telinga kanan
+			0.10, 0.45,
+			0.15, 0.40,
+			0.20, 0.35,
+			0.25, 0.30,
+			0.10, 0.50,
+			0.15, 0.45,
+			0.20, 0.40,
+			0.25, 0.40,
+			0.30, 0.45,
+			0.25, 0.45,
+			0.20, 0.45,
+			0.25, 0.50,
+			0.20, 0.50,
+			0.15, 0.50,
+			0.15, 0.55,
+			0.20, 0.55,
+			
+			-0.50, 0.30, // pipi kiri
+			-0.55, 0.25,
+			-0.55, 0.20,
+			-0.55, 0.15,
+			-0.55, 0.10,
+			-0.55, 0.05,
+			-0.55, 0.0,
+			-0.50, -0.05,
+			-0.50, -0.10,
+			-0.45, -0.15,
+			-0.40, -0.20,
+			-0.35, -0.25,
+			-0.30, -0.25,
+			-0.25, -0.30,
+			-0.20, -0.30,
+			-0.15, -0.30,
+			-0.10, -0.30,
+			
+			
+			0.30, 0.25, // pipi kanan
+			0.30, 0.20,
+			0.30, 0.15,
+			0.30, 0.10,
+			0.30, 0.05,
+			0.30, 0.0,
+			0.25, -0.05,
+			0.25, -0.10,
+			0.20, -0.15,
+			0.15, -0.20,
+			0.10, -0.25,
+			0.05, -0.25,
+			0.0, -0.30,
+			-0.05, -0.30,
+		
+		
+			-0.40, 0.25,  // mata kiri
+			-0.35, 0.30,
+			-0.30, 0.30,
+			-0.25, 0.25,
+			-0.25, 0.20,
+			-0.30, 0.15,
+			-0.35, 0.15,
+			-0.40, 0.20,
+			-0.35, 0.25,
+			-0.30, 0.25,
+			-0.35, 0.20,
+			
+			0.10, 0.30, //mata kanan
+			0.05, 0.30,
+			0.0, 0.25,
+			0.0, 0.20,
+			0.05, 0.15,
+			0.10, 0.15,
+			0.15, 0.20,
+			0.15, 0.25,
+			0.10, 0.25,
+			0.05, 0.25,
+			0.10, 0.20,
+			
+			
+			-0.10, 0.10, // hidung
+			-0.15, 0.05,
+			-0.05, 0.05,
+			
+			
+			-0.10, -0.15, // mulut
+			-0.15, -0.15,
+			-0.20, -0.10,
+			-0.05, -0.15,
+			-0.00, -0.10,
+			
+			
+		
+		]); 
+		
+		
+		var progVertexColors = new Float32Array([
+            0, 0, 0,     
+            0, 0, 0,    
+            0, 0, 0,    
+            0, 0, 0,      
+            0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0,    
+			0, 0, 0,    
+            0, 0, 0,      
+            0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0, 
+			0, 0, 0,    
+            0, 0, 0,  
+			0, 0, 0,    
+			0, 0, 0,    
+			0, 0, 0, 
+			0, 0, 0,    
+            0, 0, 0,      
+            0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0, 
+			0, 0, 0,    
+            0, 0, 0,  
+			0, 0, 0,    
+			0, 0, 0,    
+			0, 0, 0,			
+            0, 0, 0,      
+            0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0, 
+			0, 0, 0,    
+            0, 0, 0,
+			0, 0, 0,    
+			0, 0, 0,    
+            0, 0, 0,      
+            0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0, 
+			0, 0, 0,    
+            0, 0, 0,
+			0, 0, 0,    
+            0, 0, 0,      
+            0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0, 
+			0, 0, 0,    
+            0, 0, 0,			
+            0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0, 
+			0, 0, 0,    
+			0, 0, 0,    
+            0, 0, 0,      
+            0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0, 
+			0, 0, 0,    
+            0, 0, 0,      
+            0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0, 
+			0, 0, 0, 
+			0, 0, 0,    
+			0, 0, 0,    
+            0, 0, 0,      
+            0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0, 
+			0, 0, 0,    
+            0, 0, 0,      
+            0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0, 
+			0, 0, 0,    
+			0, 0, 0,    
+            0, 0, 0,      
+            0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0, 
+			0, 0, 0,    
+            0, 0, 0,      
+            0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0,
+			0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0, 
+			0, 0, 0,    
+            0, 0, 0,      
+            0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0,
+			0, 0, 0, 
+			0, 0, 0,    
+            0, 0, 0,      
+            0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0,
+			0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0, 
+			0, 0, 0,    
+            0, 0, 0,      
+            0, 0, 0,     
+			0, 0, 0,      
+            0, 0, 0,
+
+		]);
+		
+		var positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, progVertexPositions, gl.STATIC_DRAW);
+
+        var colorBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, progVertexColors, gl.STATIC_DRAW);
+
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer); 
+        gl.enableVertexAttribArray(progLocs.position);
+        gl.vertexAttribPointer(
+            progLocs.position,   
+            2,                 
+            gl.FLOAT,           
+            false,              
+            0,                 
+            0,                  
+        );
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        gl.enableVertexAttribArray(progLocs.color);
+        gl.vertexAttribPointer(
+            progLocs.color,        
+            3,                
+            gl.FLOAT,          
+            false,             
+            0,                 
+            0,                
+        );
+
+        
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.useProgram(prog);
+
+        
+        gl.drawArrays(gl.POINTS, 0, 101);
+        </script>
+
+
+
+</body>
+
+</html>
